@@ -1,13 +1,30 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { todoSchema, voidResponseSchema, type Todo } from "@/models";
+import {
+  todoSchema,
+  addTodoFormSchema,
+  voidResponseSchema,
+  type AddTodoForm,
+  type Todo,
+} from "@/models";
 import { XCircleIcon } from "@heroicons/react/16/solid";
 import { Inter } from "next/font/google";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AddTodoForm>({
+    resolver: zodResolver(addTodoFormSchema),
+  });
 
   useEffect(() => {
     fetchTodos();
@@ -19,16 +36,10 @@ export default function Home() {
     setTodos(data);
   };
 
-  const addTodo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-    const values = Object.fromEntries(formData) as { text: string };
-
+  const addTodo = async (text: string) => {
     const res = await fetch("/api/todos", {
       method: "POST",
-      body: JSON.stringify(values),
+      body: JSON.stringify({ text }),
     });
 
     const data = voidResponseSchema.parse(await res.json());
@@ -37,7 +48,7 @@ export default function Home() {
       console.error("Something went wrong");
     }
 
-    form.reset();
+    reset();
     fetchTodos();
   };
 
@@ -77,16 +88,27 @@ export default function Home() {
   };
 
   return (
-    <div className={`${inter.className} flex flex-col lg:flex-row`}>
+    <div className={`${inter.className} flex flex-col`}>
       <Head>
         <title>Todo List</title>
       </Head>
 
       <h1 className="p-2 text-2xl font-bold text-red-600">Todo App Demo</h1>
 
-      <form onSubmit={addTodo} className="flex max-w-xs gap-4 px-4 pb-6 pt-2">
-        <input type="text" name="text" className="rounded-sm" />
-        <button type="submit" className="button">
+      <form
+        onSubmit={handleSubmit(({ text }) => {
+          addTodo(text);
+        })}
+        className="flex max-w-xs items-start gap-4 px-4 pb-6 pt-2"
+      >
+        <div>
+          <input type="text" {...register("text")} className="rounded-sm" />
+          {errors.text?.message ? (
+            <p className="pt-2 text-red-600">{errors.text.message}</p>
+          ) : null}
+        </div>
+
+        <button type="submit" className="button py-[9px]">
           Add todo
         </button>
       </form>
