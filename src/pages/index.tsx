@@ -1,25 +1,21 @@
-import Head from "next/head";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  todoSchema,
-  addTodoFormSchema,
-  voidResponseSchema,
-  type AddTodoForm,
-} from "@/models";
-import { XCircleIcon } from "@heroicons/react/16/solid";
-import { Inter } from "next/font/google";
-import { useForm } from "react-hook-form";
+import { Inter } from 'next/font/google';
+import Head from 'next/head';
+import { XCircleIcon } from '@heroicons/react/16/solid';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 
-const inter = Inter({ subsets: ["latin"] });
+import { addTodoFormSchema, todoSchema, voidResponseSchema, type AddTodoForm } from '@/models';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export default function Home() {
   const queryClient = useQueryClient();
 
   const { data: todos, isPending } = useQuery({
-    queryKey: ["todos"],
+    queryKey: ['todos'],
     queryFn: async () => {
-      const res = await fetch("/api/todos");
+      const res = await fetch('/api/todos');
       const data = todoSchema.array().parse(await res.json());
       return data;
     },
@@ -27,22 +23,22 @@ export default function Home() {
 
   const addTodo = useMutation({
     mutationFn: async (text: string) => {
-      const res = await fetch("/api/todos", {
-        method: "POST",
+      const res = await fetch('/api/todos', {
+        method: 'POST',
         body: JSON.stringify({ text }),
       });
 
       const data = voidResponseSchema.parse(await res.json());
 
       if (!data.success) {
-        throw new Error("Something went wrong");
+        throw new Error('Something went wrong');
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
       reset();
     },
-    onError: (error) => {
+    onError: error => {
       console.error(error);
     },
   });
@@ -51,10 +47,10 @@ export default function Home() {
     mutationFn: async (id: string) => {
       if (!todos?.length) return;
 
-      const todo = todos.find((t) => t.id === id)!;
+      const todo = todos.find(t => t.id === id)!;
 
-      const res = await fetch("/api/todos", {
-        method: "PUT",
+      const res = await fetch('/api/todos', {
+        method: 'PUT',
         body: JSON.stringify({
           ...todo,
           isCompleted: !todo.isCompleted,
@@ -64,34 +60,34 @@ export default function Home() {
       const data = voidResponseSchema.parse(await res.json());
 
       if (!data.success) {
-        throw new Error("Something went wrong");
+        throw new Error('Something went wrong');
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
-    onError: (error) => {
+    onError: error => {
       console.error(error);
     },
   });
 
   const deleteTodo = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch("/api/todos", {
-        method: "DELETE",
+      const res = await fetch('/api/todos', {
+        method: 'DELETE',
         body: JSON.stringify({ id }),
       });
 
       const data = voidResponseSchema.parse(await res.json());
 
       if (!data.success) {
-        throw new Error("Something went wrong");
+        throw new Error('Something went wrong');
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
-    onError: (error) => {
+    onError: error => {
       console.error(error);
     },
   });
@@ -124,10 +120,8 @@ export default function Home() {
         className="flex max-w-xs items-start gap-4 px-4 pb-6 pt-2"
       >
         <div>
-          <input type="text" {...register("text")} className="rounded-sm" />
-          {errors.text?.message ? (
-            <p className="pt-2 text-red-600">{errors.text.message}</p>
-          ) : null}
+          <input type="text" {...register('text')} className="rounded-sm" />
+          {errors.text?.message ? <p className="pt-2 text-red-600">{errors.text.message}</p> : null}
         </div>
 
         <button type="submit" className="button py-[9px]">
@@ -136,7 +130,7 @@ export default function Home() {
       </form>
 
       <ul className="mx-4 inline-block">
-        {todos.map((todo) => (
+        {todos.map(todo => (
           <li key={todo.id} className="flex gap-3">
             <label className="flex items-center gap-4">
               <input
@@ -148,10 +142,7 @@ export default function Home() {
               <p>{todo.text}</p>
             </label>
 
-            <button
-              onClick={() => deleteTodo.mutate(todo.id)}
-              className="text-red-600"
-            >
+            <button onClick={() => deleteTodo.mutate(todo.id)} className="text-red-600">
               <span className="sr-only">Delete todo</span>
               <XCircleIcon className="size-4" />
             </button>

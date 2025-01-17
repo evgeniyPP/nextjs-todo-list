@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const todoSchema = z.object({
   id: z.string(),
@@ -13,6 +13,6 @@ export const voidResponseSchema = z.object({
 export type VoidResponse = z.infer<typeof voidResponseSchema>;
 
 export const addTodoFormSchema = z.object({
-  text: z.string().min(1, { message: "Text is required" }),
+  text: z.string().min(1, { message: 'Text is required' }),
 });
 export type AddTodoForm = z.infer<typeof addTodoFormSchema>;
