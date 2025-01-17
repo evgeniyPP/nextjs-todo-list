@@ -1,4 +1,4 @@
-import { VoidResponse, type Todo } from "@/models";
+import { todoSchema, VoidResponse, type Todo } from "@/models";
 import { type NextApiRequest, type NextApiResponse } from "next";
 
 export default async function handler(
@@ -21,7 +21,7 @@ export default async function handler(
 
 async function GET(_req: NextApiRequest, res: NextApiResponse<Todo[]>) {
   const dataRes = await fetch("http://localhost:3001/todos");
-  const data = (await dataRes.json()) as Todo[];
+  const data = todoSchema.array().parse(await dataRes.json());
 
   res.status(200).json(data);
 }
@@ -48,7 +48,7 @@ async function PUT(req: NextApiRequest, res: NextApiResponse<VoidResponse>) {
     body: JSON.stringify(body),
   });
 
-  const data = (await dbRes.json()) as Todo;
+  const data = todoSchema.parse(await dbRes.json());
 
   res.status(200).json({ success: data.id === body.id });
 }

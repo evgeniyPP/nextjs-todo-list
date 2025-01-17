@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { type Todo, type VoidResponse } from "@/models";
+import { todoSchema, voidResponseSchema, type Todo } from "@/models";
 import { XCircleIcon } from "@heroicons/react/16/solid";
 import { Inter } from "next/font/google";
 
@@ -15,7 +15,7 @@ export default function Home() {
 
   const fetchTodos = async () => {
     const res = await fetch("/api/todos");
-    const data = (await res.json()) as Todo[];
+    const data = todoSchema.array().parse(await res.json());
     setTodos(data);
   };
 
@@ -31,7 +31,7 @@ export default function Home() {
       body: JSON.stringify(values),
     });
 
-    const data = (await res.json()) as VoidResponse;
+    const data = voidResponseSchema.parse(await res.json());
 
     if (!data.success) {
       console.error("Something went wrong");
@@ -52,7 +52,7 @@ export default function Home() {
       }),
     });
 
-    const data = (await res.json()) as VoidResponse;
+    const data = voidResponseSchema.parse(await res.json());
 
     if (!data.success) {
       console.error("Something went wrong");
@@ -67,7 +67,7 @@ export default function Home() {
       body: JSON.stringify({ id }),
     });
 
-    const data = (await res.json()) as VoidResponse;
+    const data = voidResponseSchema.parse(await res.json());
 
     if (!data.success) {
       console.error("Something went wrong");
