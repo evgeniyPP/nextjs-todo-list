@@ -1,6 +1,9 @@
 import { type NextApiRequest, type NextApiResponse } from 'next';
+import { eq } from 'drizzle-orm';
 
-import { todoSchema, VoidResponse, type Todo } from '@/models';
+import { db } from '@/db';
+import { todos } from '@/db/schema';
+import { todoSchema, type Todo, type VoidResponse } from '@/models';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (req.method) {
@@ -18,45 +21,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function GET(_req: NextApiRequest, res: NextApiResponse<Todo[]>) {
-  const dataRes = await fetch('http://localhost:3001/todos');
-  const data = todoSchema.array().parse(await dataRes.json());
+  const data = await db.select().from(todos);
+  const parsedData = todoSchema.array().parse(data);
 
-  res.status(200).json(data);
+  return res.status(200).json(parsedData);
 }
 
 async function POST(req: NextApiRequest, res: NextApiResponse<VoidResponse>) {
   const body = JSON.parse(req.body) as { text: string };
 
-  await fetch(`http://localhost:3001/todos`, {
-    method: 'POST',
-    body: JSON.stringify({
-      text: body.text,
-      isCompleted: false,
-    }),
-  });
+  await db.insert(todos).values({ text: body.text, isCompleted: false });
 
-  res.status(200).json({ success: true });
+  return res.status(200).json({ success: true });
 }
 
 async function PUT(req: NextApiRequest, res: NextApiResponse<VoidResponse>) {
   const body = JSON.parse(req.body) as Todo;
 
-  const dbRes = await fetch(`http://localhost:3001/todos/${body.id}`, {
-    method: 'PUT',
-    body: JSON.stringify(body),
-  });
+  await db
+    .update(todos)
+    .set({ text: body.text, isCompleted: body.isCompleted })
+    .where(eq(todos.id, body.id));
 
-  const data = todoSchema.parse(await dbRes.json());
-
-  res.status(200).json({ success: data.id === body.id });
+  return res.status(200).json({ success: true });
 }
 
 async function DELETE(req: NextApiRequest, res: NextApiResponse<VoidResponse>) {
   const body = JSON.parse(req.body) as { id: string };
 
-  await fetch(`http://localhost:3001/todos/${body.id}`, {
-    method: 'DELETE',
-  });
+  await db.delete(todos).where(eq(todos.id, body.id));
 
-  res.status(200).json({ success: true });
+  return res.status(200).json({ success: true });
 }
