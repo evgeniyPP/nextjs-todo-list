@@ -2,6 +2,7 @@
 
 ```
 npm i
-npm run db
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
